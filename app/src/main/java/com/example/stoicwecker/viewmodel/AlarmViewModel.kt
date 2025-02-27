@@ -18,6 +18,12 @@ data class AlarmState(
 class AlarmViewModel(private val quoteApi: QuoteApi) : ViewModel() {
     private val _state = MutableStateFlow(AlarmState())
     val state: StateFlow<AlarmState> = _state
+    
+    private val SNOOZE_MINUTES = 5
+
+    init {
+        fetchNewQuote()
+    }
 
     fun setAlarmTime(hour: Int, minute: Int) {
         _state.value = _state.value.copy(
@@ -40,5 +46,12 @@ class AlarmViewModel(private val quoteApi: QuoteApi) : ViewModel() {
 
     fun toggleAlarm() {
         _state.value = _state.value.copy(isAlarmSet = !_state.value.isAlarmSet)
+    }
+
+    fun snoozeAlarm() {
+        val currentTime = _state.value.alarmTime
+        val newTime = currentTime.plusMinutes(SNOOZE_MINUTES.toLong())
+        _state.value = _state.value.copy(alarmTime = newTime)
+        // Hier würde die Logik zum Aktualisieren des tatsächlichen Alarms kommen
     }
 }
