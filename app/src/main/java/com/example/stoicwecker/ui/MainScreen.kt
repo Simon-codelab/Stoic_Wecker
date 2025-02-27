@@ -12,8 +12,9 @@ import com.example.stoicwecker.viewmodel.AlarmViewModel
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun MainScreen(viewModel: AlarmViewModel) {
+fun AlarmScreen(viewModel: AlarmViewModel, alarmId: String) {
     val state by viewModel.state.collectAsState()
+    val alarm = state.alarms.find { it.id == alarmId }
     
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -56,44 +57,54 @@ fun MainScreen(viewModel: AlarmViewModel) {
             }
             
             // Aktuelle Zeit (mittig)
-            Text(
-                text = state.alarmTime.format(DateTimeFormatter.ofPattern("HH:mm")),
-                style = MaterialTheme.typography.displayLarge.copy(
-                    fontWeight = FontWeight.Light
-                ),
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(vertical = 48.dp)
-            )
-            
-            // Buttons nebeneinander
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Alarm Ein/Aus Button
-                OutlinedButton(
-                    onClick = { viewModel.toggleAlarm() },
-                    modifier = Modifier.weight(1f)
-                ) {
+            alarm?.let { currentAlarm ->
+                Text(
+                    text = currentAlarm.time.format(DateTimeFormatter.ofPattern("HH:mm")),
+                    style = MaterialTheme.typography.displayLarge.copy(
+                        fontWeight = FontWeight.Light
+                    ),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(vertical = 48.dp)
+                )
+                
+                if (currentAlarm.label.isNotEmpty()) {
                     Text(
-                        text = if (state.isAlarmSet) "Ausschalten" else "Einschalten",
-                        style = MaterialTheme.typography.bodyMedium
+                        text = currentAlarm.label,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(bottom = 24.dp)
                     )
                 }
                 
-                // Snooze Button
-                FilledTonalButton(
-                    onClick = { viewModel.snoozeAlarm() },
-                    enabled = state.isAlarmSet,
-                    modifier = Modifier.weight(1f)
+                // Buttons nebeneinander
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Snooze",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    // Alarm Ein/Aus Button
+                    OutlinedButton(
+                        onClick = { viewModel.toggleAlarm(currentAlarm.id) },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Ausschalten",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    
+                    // Snooze Button
+                    FilledTonalButton(
+                        onClick = { viewModel.snoozeAlarm(currentAlarm.id) },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Snooze",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
         }

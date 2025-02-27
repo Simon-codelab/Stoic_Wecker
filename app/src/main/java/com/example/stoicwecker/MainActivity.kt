@@ -7,16 +7,20 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.stoicwecker.data.QuoteApiImpl
-import com.example.stoicwecker.ui.MainScreen
+import com.example.stoicwecker.ui.HomeScreen
+import com.example.stoicwecker.ui.AlarmScreen
 import com.example.stoicwecker.ui.theme.StoicWeckerTheme
 import com.example.stoicwecker.viewmodel.AlarmViewModel
 import com.example.stoicwecker.viewmodel.AlarmViewModelFactory
+
+sealed class Screen {
+    object Home : Screen()
+    data class Alarm(val alarmId: String) : Screen()
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,25 +37,22 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val viewModel: AlarmViewModel = viewModel(factory = factory)
-                    MainScreen(viewModel = viewModel)
+                    var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
+                    
+                    when (currentScreen) {
+                        is Screen.Home -> HomeScreen(
+                            viewModel = viewModel,
+                            onAlarmTriggered = { alarmId ->
+                                currentScreen = Screen.Alarm(alarmId)
+                            }
+                        )
+                        is Screen.Alarm -> AlarmScreen(
+                            viewModel = viewModel,
+                            alarmId = (currentScreen as Screen.Alarm).alarmId
+                        )
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    StoicWeckerTheme {
-        Greeting("Android")
     }
 }
